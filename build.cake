@@ -1,8 +1,8 @@
 // Install tools.
-#tool dotnet:?package=GitVersion.Tool&version=6.3.0
+#tool dotnet:?package=GitVersion.Tool&version=6.4.0
 #tool dotnet:?package=coveralls.net&version=4.0.1
 #tool nuget:?package=GitReleaseManager&version=0.20.0
-#tool nuget:?package=ReportGenerator&version=5.4.7
+#tool nuget:?package=ReportGenerator&version=5.4.12
 #tool nuget:?package=xunit.runner.console&version=2.9.3
 #tool nuget:?package=CodecovUploader&version=0.8.0
 
