@@ -1,13 +1,11 @@
 // Install tools.
 #tool dotnet:?package=GitVersion.Tool&version=6.4.0
-#tool dotnet:?package=coveralls.net&version=4.0.1
 #tool nuget:?package=GitReleaseManager&version=0.20.0
-#tool nuget:?package=ReportGenerator&version=5.4.12
+#tool nuget:?package=ReportGenerator&version=5.4.13
 #tool nuget:?package=xunit.runner.console&version=2.9.3
 #tool nuget:?package=CodecovUploader&version=0.8.0
 
 // Install addins.
-#addin nuget:?package=Cake.Coveralls&version=4.0.0
 #addin nuget:?package=Cake.Git&version=5.0.1
 #addin nuget:?package=Cake.Codecov&version=3.0.0
 
@@ -37,7 +35,6 @@ var gitHubUserName = Argument<string>("GITHUB_USERNAME", EnvironmentVariable("GI
 var gitHubPassword = Argument<string>("GITHUB_PASSWORD", EnvironmentVariable("GITHUB_PASSWORD"));
 var gitHubRepoOwner = Argument<string>("GITHUB_REPOOWNER", EnvironmentVariable("GITHUB_REPOOWNER") ?? gitHubUserName);
 
-var coverallsToken = Argument<string>("COVERALLS_REPO_TOKEN", EnvironmentVariable("COVERALLS_REPO_TOKEN"));
 var codecovToken = Argument<string>("CODECOV_TOKEN", EnvironmentVariable("CODECOV_TOKEN"));
 
 var sourceFolder = "./Source/";
@@ -276,28 +273,6 @@ Task("Run-Code-Coverage")
     DotNetTest(unitTestsProject, testSettings);
 });
 
-Task("Upload-Coverage-Result-Coveralls")
-	.IsDependentOn("Run-Code-Coverage")
-    .WithCriteria(() => FileExists(coverageFile))
-	.WithCriteria(() => !isLocalBuild)
-	.WithCriteria(() => !isPullRequest)
-	.WithCriteria(() => isMainRepo)
-	.Does(() =>
-{
-	if(string.IsNullOrEmpty(coverallsToken)) throw new InvalidOperationException("Could not resolve Coveralls token.");
-
-	CoverallsNet(new FilePath(coverageFile), CoverallsNetReportType.OpenCover, new CoverallsNetSettings()
-	{
-		RepoToken = coverallsToken,
-		UseRelativePaths = true
-	});
-}).OnError (exception =>
-{
-    Information(exception.Message);
-    Information($"Failed to upload coverage result to Coveralls, but continuing with next Task...");
-    publishingError = true;
-});
-
 Task("Upload-Coverage-Result-Codecov")
 	.IsDependentOn("Run-Code-Coverage")
     .WithCriteria(() => FileExists(coverageFile))
@@ -499,7 +474,6 @@ Task("ReleaseNotes")
 
 Task("AppVeyor")
 	.IsDependentOn("Run-Code-Coverage")
-	.IsDependentOn("Upload-Coverage-Result-Coveralls")
 	.IsDependentOn("Upload-Coverage-Result-Codecov")
 	.IsDependentOn("Create-NuGet-Package")
 	.IsDependentOn("Upload-AppVeyor-Artifacts")
