@@ -10,9 +10,9 @@
             <!-- Match fully qualified names of functions: -->
             <Functions>
               <Exclude>
-                <Function>Http-Multipart-Data-Parser\.Properties\..*</Function>
-                <Function>Http-Multipart-Data-Parser\.Models\..*</Function>
-                <Function>Http-Multipart-Data-Parser\.Utilities\.Log\..*</Function>
+                <Function>HttpMultipartParser\.Properties\..*</Function>
+                <Function>HttpMultipartParser\.Models\..*</Function>
+                <Function>HttpMultipartParser\.Utilities\.Log\..*</Function>
                 <Function>System\.Text\.Json\.SourceGeneration\..*</Function>
                 <Function>System\.Runtime\.CompilerServices\..*</Function>
               </Exclude>
@@ -21,7 +21,7 @@
             <!-- Match attributes on any code element: -->
             <Attributes>
               <Exclude>
-                <Attribute>Http-Multipart-Data-Parser\.Utilities\.ExcludeFromCodeCoverageAttribute</Attribute>
+                <Attribute>HttpMultipartParser\.Utilities\.ExcludeFromCodeCoverageAttribute</Attribute>
                 <Attribute>System\.Obsolete</Attribute>
                 <Attribute>System\.CodeDom\.Compiler\.GeneratedCodeAttribute</Attribute>
                 <Attribute>System\.Runtime\.CompilerServices\.CompilerGeneratedAttribute</Attribute>

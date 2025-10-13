@@ -1,7 +1,7 @@
 // Install tools.
 #tool dotnet:?package=GitVersion.Tool&version=6.4.0
 #tool nuget:?package=GitReleaseManager&version=0.20.0
-#tool nuget:?package=ReportGenerator&version=5.4.13
+#tool nuget:?package=ReportGenerator&version=5.4.17
 #tool nuget:?package=xunit.runner.console&version=2.9.3
 #tool nuget:?package=CodecovUploader&version=0.8.0
 
@@ -24,8 +24,8 @@ if (IsRunningOnUnix()) target = "Run-Unit-Tests";
 // GLOBAL VARIABLES
 ///////////////////////////////////////////////////////////////////////////////
 
-var libraryName = "HttpMultipartParser";
-var gitHubRepo = "Http-Multipart-Data-Parser";
+var buildBranch = Context.GetBuildBranch();
+var repoFullName = Context.GetRepoName();
 
 var nuGetApiUrl = Argument<string>("NUGET_API_URL", EnvironmentVariable("NUGET_API_URL"));
 var nuGetApiKey = Argument<string>("NUGET_API_KEY", EnvironmentVariable("NUGET_API_KEY"));
@@ -34,6 +34,7 @@ var gitHubToken = Argument<string>("GITHUB_TOKEN", EnvironmentVariable("GITHUB_T
 var gitHubUserName = Argument<string>("GITHUB_USERNAME", EnvironmentVariable("GITHUB_USERNAME"));
 var gitHubPassword = Argument<string>("GITHUB_PASSWORD", EnvironmentVariable("GITHUB_PASSWORD"));
 var gitHubRepoOwner = Argument<string>("GITHUB_REPOOWNER", EnvironmentVariable("GITHUB_REPOOWNER") ?? gitHubUserName);
+var gitHubRepoName = repoFullName.Split('/')[1];
 
 var codecovToken = Argument<string>("CODECOV_TOKEN", EnvironmentVariable("CODECOV_TOKEN"));
 
@@ -43,14 +44,11 @@ var codeCoverageDir = $"{outputDir}CodeCoverage/";
 var benchmarkDir = $"{outputDir}Benchmark/";
 var coverageFile = $"{codeCoverageDir}coverage.xml";
 
-var solutionFile = $"{sourceFolder}{libraryName}.sln";
-var sourceProject = $"{sourceFolder}{libraryName}/{libraryName}.csproj";
-var integrationTestsProject = $"{sourceFolder}{libraryName}.IntegrationTests/{libraryName}.IntegrationTests.csproj";
-var unitTestsProject = $"{sourceFolder}{libraryName}.UnitTests/{libraryName}.UnitTests.csproj";
-var benchmarkProject = $"{sourceFolder}{libraryName}.Benchmark/{libraryName}.Benchmark.csproj";
-
-var buildBranch = Context.GetBuildBranch();
-var repoName = Context.GetRepoName();
+var solutionFile = $"{sourceFolder}{gitHubRepoName}.sln";
+var sourceProject = $"{sourceFolder}{gitHubRepoName}/{gitHubRepoName}.csproj";
+var integrationTestsProject = $"{sourceFolder}{gitHubRepoName}.IntegrationTests/{gitHubRepoName}.IntegrationTests.csproj";
+var unitTestsProject = $"{sourceFolder}{gitHubRepoName}.UnitTests/{gitHubRepoName}.UnitTests.csproj";
+var benchmarkProject = $"{sourceFolder}{gitHubRepoName}.Benchmark/{gitHubRepoName}.Benchmark.csproj";
 
 var versionInfo = (GitVersion)null; // Will be calculated in SETUP
 var milestone = string.Empty; // Will be calculated in SETUP
@@ -58,7 +56,7 @@ var milestone = string.Empty; // Will be calculated in SETUP
 var cakeVersion = typeof(ICakeContext).Assembly.GetName().Version.ToString();
 var isLocalBuild = BuildSystem.IsLocalBuild;
 var isMainBranch = StringComparer.OrdinalIgnoreCase.Equals("main", buildBranch);
-var isMainRepo = StringComparer.OrdinalIgnoreCase.Equals($"{gitHubRepoOwner}/{gitHubRepo}", repoName);
+var isMainRepo = StringComparer.OrdinalIgnoreCase.Equals($"{gitHubRepoOwner}/{gitHubRepoName}", repoFullName);
 var isPullRequest = BuildSystem.AppVeyor.Environment.PullRequest.IsPullRequest;
 var isTagged = BuildSystem.AppVeyor.Environment.Repository.Tag.IsTag && !string.IsNullOrWhiteSpace(BuildSystem.AppVeyor.Environment.Repository.Tag.Name);
 var isIntegrationTestsProjectPresent = FileExists(integrationTestsProject);
@@ -97,7 +95,7 @@ Setup(context =>
 
 	Information("Building version {0} of {1} ({2}, {3}) using version {4} of Cake",
 		versionInfo.FullSemVer,
-		libraryName,
+		gitHubRepoName,
 		configuration,
 		target,
 		cakeVersion
@@ -119,7 +117,7 @@ Setup(context =>
 	if (!string.IsNullOrEmpty(gitHubToken))
 	{
 		Information("GitHub Info:\r\n\tRepo: {0}\r\n\tUserName: {1}\r\n\tToken: {2}",
-			$"{gitHubRepoOwner}/{gitHubRepo}",
+			$"{gitHubRepoOwner}/{gitHubRepoName}",
 			gitHubUserName,
 			new string('*', gitHubToken.Length)
 		);
@@ -127,7 +125,7 @@ Setup(context =>
 	else
 	{
 		Information("GitHub Info:\r\n\tRepo: {0}\r\n\tUserName: {1}\r\n\tPassword: {2}",
-			$"{gitHubRepoOwner}/{gitHubRepo}",
+			$"{gitHubRepoOwner}/{gitHubRepoName}",
 			gitHubUserName,
 			string.IsNullOrEmpty(gitHubPassword) ? "[NULL]" : new string('*', gitHubPassword.Length)
 		);
@@ -312,7 +310,7 @@ Task("Create-NuGet-Package")
 	.IsDependentOn("Build")
 	.Does(() =>
 {
-	var releaseNotesUrl = @$"https://github.com/{gitHubRepoOwner}/{gitHubRepo}/releases/tag/{milestone}";
+	var releaseNotesUrl = @$"https://github.com/{gitHubRepoOwner}/{gitHubRepoName}/releases/tag/{milestone}";
 
 	var settings = new DotNetPackSettings
 	{
@@ -382,7 +380,7 @@ Task("Create-Release-Notes")
 		throw new InvalidOperationException("GitHub token was not provided.");
 	}
 
-	GitReleaseManagerCreate(gitHubToken, gitHubRepoOwner, gitHubRepo, new GitReleaseManagerCreateSettings
+	GitReleaseManagerCreate(gitHubToken, gitHubRepoOwner, gitHubRepoName, new GitReleaseManagerCreateSettings
 	{
 		Name            = milestone,
 		Milestone       = milestone,
@@ -405,7 +403,7 @@ Task("Publish-GitHub-Release")
 		throw new InvalidOperationException("GitHub token was not provided.");
 	}
 
-	GitReleaseManagerClose(gitHubToken, gitHubRepoOwner, gitHubRepo, milestone, new GitReleaseManagerCloseMilestoneSettings
+	GitReleaseManagerClose(gitHubToken, gitHubRepoOwner, gitHubRepoName, milestone, new GitReleaseManagerCloseMilestoneSettings
 	{
 		Verbose = true
 	});
@@ -417,7 +415,7 @@ Task("Generate-Benchmark-Report")
 	.Does(() =>
 {
     var publishDirectory = $"{benchmarkDir}Publish/";
-    var publishedAppLocation = MakeAbsolute(File($"{publishDirectory}{libraryName}.Benchmark.exe")).FullPath;
+    var publishedAppLocation = MakeAbsolute(File($"{publishDirectory}{gitHubRepoName}.Benchmark.exe")).FullPath;
     var artifactsLocation = MakeAbsolute(File(benchmarkDir)).FullPath;
 
     DotNetPublish(benchmarkProject, new DotNetPublishSettings
