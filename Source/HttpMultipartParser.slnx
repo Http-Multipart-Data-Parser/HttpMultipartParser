@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="../README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="HttpMultipartParser/HttpMultipartParser.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="HttpMultipartParser.Benchmark/HttpMultipartParser.Benchmark.csproj" />
+    <Project Path="HttpMultipartParser.UnitTests/HttpMultipartParser.UnitTests.csproj" />
+  </Folder>
+</Solution>
