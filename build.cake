@@ -1,5 +1,5 @@
 // Install tools.
-#tool dotnet:?package=GitVersion.Tool&version=6.4.0
+#tool dotnet:?package=GitVersion.Tool&version=6.5.0
 #tool nuget:?package=GitReleaseManager&version=0.20.0
 #tool nuget:?package=ReportGenerator&version=5.4.18
 #tool nuget:?package=xunit.runner.console&version=2.9.3
