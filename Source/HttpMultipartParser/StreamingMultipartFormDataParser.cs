@@ -106,9 +106,9 @@ namespace HttpMultipartParser
 			_options = new ParserOptions
 			{
 				Boundary = boundary,
-				Encoding = encoding,
+				Encoding = encoding ?? Constants.DefaultEncoding,
 				BinaryBufferSize = binaryBufferSize,
-				BinaryMimeTypes = binaryMimeTypes,
+				BinaryMimeTypes = binaryMimeTypes ?? Constants.DefaultBinaryMimeTypes,
 				IgnoreInvalidParts = ignoreInvalidParts
 			};
 
@@ -180,12 +180,12 @@ namespace HttpMultipartParser
 		/// <summary>
 		/// Gets the binary buffer size.
 		/// </summary>
-		public int BinaryBufferSize { get; private set; }
+		public int BinaryBufferSize => _options.BinaryBufferSize;
 
 		/// <summary>
 		/// Gets the encoding.
 		/// </summary>
-		public Encoding Encoding { get; private set; }
+		public Encoding Encoding => _options.Encoding;
 
 		/// <summary>
 		/// Gets or sets the FileHandler. Delegates attached to this property will receive sequential file stream data from this parser.
