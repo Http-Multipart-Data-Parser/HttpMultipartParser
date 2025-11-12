@@ -63,5 +63,21 @@ namespace HttpMultipartParser.UnitTests
 				await parser.RunAsync(TestContext.Current.CancellationToken);
 			}
 		}
+
+		[Fact]
+		public void CanHandleDefaultOptions()
+		{
+			using (Stream stream = TestUtil.StringToStream(_testData))
+			{
+				var parser = new StreamingMultipartFormDataParser(stream);
+
+				// Intentionally setting these handlers to null to verify that we can parse the stream despite missing handlers
+				// See: https://github.com/Http-Multipart-Data-Parser/Http-Multipart-Data-Parser/issues/121
+				parser.ParameterHandler = null;
+				parser.FileHandler = null;
+
+				parser.Run();
+			}
+		}
 	}
 }
