@@ -135,21 +135,15 @@ namespace HttpMultipartParser
 		///     By default the parser will throw an exception if it encounters an invalid part. set this to true to ignore invalid parts.
 		/// </param>
 		public StreamingBinaryMultipartFormDataParser(Stream stream, string boundary = null, Encoding encoding = null, int binaryBufferSize = Constants.DefaultBufferSize, string[] binaryMimeTypes = null, bool ignoreInvalidParts = false)
-		{
-			if (stream == null || stream == Stream.Null) { throw new ArgumentNullException(nameof(stream)); }
-
-			_options = new ParserOptions
+			: this(stream, new ParserOptions
 			{
 				BinaryBufferSize = binaryBufferSize,
+				BinaryMimeTypes = binaryMimeTypes ?? Constants.DefaultBinaryMimeTypes,
+				Boundary = boundary,
+				Encoding = encoding ?? Constants.DefaultEncoding,
 				IgnoreInvalidParts = ignoreInvalidParts
-			};
-
-			if (!string.IsNullOrEmpty(boundary)) _options.Boundary = boundary;
-			if (encoding != null) _options.Encoding = encoding;
-			if (binaryMimeTypes != null) _options.BinaryMimeTypes = binaryMimeTypes;
-
-			_stream = stream;
-			readEndBoundary = false;
+			})
+		{
 		}
 
 		/// <summary>
@@ -164,7 +158,8 @@ namespace HttpMultipartParser
 		/// </param>
 		public StreamingBinaryMultipartFormDataParser(Stream stream, ParserOptions options)
 		{
-			if (stream == null || stream == Stream.Null) { throw new ArgumentNullException(nameof(stream)); }
+			if (stream == null || stream == Stream.Null) throw new ArgumentNullException(nameof(stream));
+			_stream = stream;
 
 			if (options == null)
 			{
@@ -179,7 +174,6 @@ namespace HttpMultipartParser
 				_options = options;
 			}
 
-			_stream = stream;
 			readEndBoundary = false;
 		}
 

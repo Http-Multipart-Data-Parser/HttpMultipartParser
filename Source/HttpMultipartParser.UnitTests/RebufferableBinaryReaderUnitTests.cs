@@ -405,6 +405,26 @@ namespace HttpMultipartParser.UnitTests
 		#region ReadByteLine() Tests
 
 		[Fact]
+		// This unit test verifies that ReadByteLine can read a line which spans multiple chunks.
+		// https://github.com/Http-Multipart-Data-Parser/Http-Multipart-Data-Parser/issues/40
+		public void CanReadByteLineAccrossChunks()
+		{
+			// For this test to truly demonstrate that we can read a line which spans multiple chunks,
+			// the newline needs to be at a position greater than the buffer size.
+			var bufferSize = 5;
+			var inputString = "0123456789ab\r\ncde";
+
+			var reader = new RebufferableBinaryReader(TestUtil.StringToStreamNoBom(inputString), Encoding.UTF8, bufferSize);
+			var bytes = reader.ReadByteLine();
+			var expected = Encoding.UTF8.GetBytes("0123456789ab");
+
+			foreach (var pair in expected.Zip(bytes, Tuple.Create))
+			{
+				Assert.Equal(pair.Item1, pair.Item2);
+			}
+		}
+
+		[Fact]
 		public void CanReadByteLineOnMixedAsciiAndUTF8Text()
 		{
 			var reader = new RebufferableBinaryReader(TestUtil.StringToStreamNoBom("Bonjour poignée"), Encoding.UTF8);
@@ -420,6 +440,26 @@ namespace HttpMultipartParser.UnitTests
 		#endregion
 
 		#region ReadByteLineAsync() Tests
+
+		[Fact]
+		// This unit test verifies that ReadByteLine can read a line which spans multiple chunks.
+		// https://github.com/Http-Multipart-Data-Parser/Http-Multipart-Data-Parser/issues/40
+		public async Task CanReadByteLineAsyncAccrossChunks()
+		{
+			// For this test to truly demonstrate that we can read a line which spans multiple chunks,
+			// the newline needs to be at a position greater than the buffer size.
+			var bufferSize = 5;
+			var inputString = "0123456789ab\r\ncde";
+
+			var reader = new RebufferableBinaryReader(TestUtil.StringToStreamNoBom(inputString), Encoding.UTF8, bufferSize);
+			var bytes = await reader.ReadByteLineAsync(TestContext.Current.CancellationToken);
+			var expected = Encoding.UTF8.GetBytes("0123456789ab");
+
+			foreach (var pair in expected.Zip(bytes, Tuple.Create))
+			{
+				Assert.Equal(pair.Item1, pair.Item2);
+			}
+		}
 
 		[Fact]
 		public async Task CanReadByteLineOnMixedAsciiAndUTF8TextAsync()

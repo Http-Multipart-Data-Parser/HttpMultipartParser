@@ -1,7 +1,7 @@
 create:
   include-footer: false
   footer-heading: Where to get it
-  footer-content: You can download this release from [nuget.org](https://www.nuget.org/packages/Http-Multipart-Data-Parser/{milestone})
+  footer-content: You can download this release from [nuget.org](https://www.nuget.org/packages/HttpMultipartParser/{milestone})
   footer-includes-milestone: true
   milestone-replace-text: '{milestone}'
   include-contributors: true
@@ -14,7 +14,7 @@ close:
     The release is available on:
 
     - [GitHub Release](https://github.com/{owner}/{repository}/releases/tag/{milestone})
-    - [NuGet Package](https://www.nuget.org/packages/Http-Multipart-Data-Parser/{milestone})
+    - [NuGet Package](https://www.nuget.org/packages/HttpMultipartParser/{milestone})
 
     Your **[GitReleaseManager](https://github.com/GitTools/GitReleaseManager)** bot :package::rocket:
 export:

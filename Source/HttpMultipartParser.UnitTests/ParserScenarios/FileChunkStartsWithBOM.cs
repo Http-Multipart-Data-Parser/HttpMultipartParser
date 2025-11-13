@@ -23,13 +23,10 @@ Content-Type: application/octet-stream
 		private static readonly string _fileContent = $"{_padding}{_utf8BOMString}Hello world";
 
 		private static readonly string _testDataFormat =
-			@"{0}{1}
+	@"{0}{1}
 --boundary--";
 		private static readonly string _testData = TestUtil.TrimAllLines(string.Format(_testDataFormat, _prefix, _fileContent));
 
-		/// <summary>
-		///     Test case for files with additional parameter.
-		/// </summary>
 		private static readonly TestData _testCase = new TestData(
 			_testData,
 			new List<ParameterPart> { },
