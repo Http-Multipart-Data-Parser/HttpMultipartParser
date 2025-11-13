@@ -20,6 +20,7 @@
 // <author>Jake Woods</author>
 // --------------------------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -180,12 +181,11 @@ namespace HttpMultipartParser
 			var options = new ParserOptions
 			{
 				BinaryBufferSize = binaryBufferSize,
+				BinaryMimeTypes = binaryMimeTypes ?? Constants.DefaultBinaryMimeTypes,
+				Boundary = boundary,
+				Encoding = encoding ?? Constants.DefaultEncoding,
 				IgnoreInvalidParts = ignoreInvalidParts
 			};
-
-			if (!string.IsNullOrEmpty(boundary)) options.Boundary = boundary;
-			if (encoding != null) options.Encoding = encoding;
-			if (binaryMimeTypes != null) options.BinaryMimeTypes = binaryMimeTypes;
 
 			return Parse(stream, options);
 		}
@@ -276,12 +276,11 @@ namespace HttpMultipartParser
 			var options = new ParserOptions
 			{
 				BinaryBufferSize = binaryBufferSize,
+				BinaryMimeTypes = binaryMimeTypes ?? Constants.DefaultBinaryMimeTypes,
+				Boundary = boundary,
+				Encoding = encoding ?? Constants.DefaultEncoding,
 				IgnoreInvalidParts = ignoreInvalidParts
 			};
-
-			if (!string.IsNullOrEmpty(boundary)) options.Boundary = boundary;
-			if (encoding != null) options.Encoding = encoding;
-			if (binaryMimeTypes != null) options.BinaryMimeTypes = binaryMimeTypes;
 
 			return ParseAsync(stream, options, cancellationToken);
 		}

@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -100,19 +99,15 @@ namespace HttpMultipartParser
 		///     By default the parser will throw an exception if it encounters an invalid part. set this to true to ignore invalid parts.
 		/// </param>
 		public StreamingMultipartFormDataParser(Stream stream, string boundary = null, Encoding encoding = null, int binaryBufferSize = Constants.DefaultBufferSize, string[] binaryMimeTypes = null, bool ignoreInvalidParts = false)
-		{
-			if (stream == null || stream == Stream.Null) { throw new ArgumentNullException(nameof(stream)); }
-
-			_options = new ParserOptions
+			: this(stream, new ParserOptions
 			{
-				Boundary = boundary,
-				Encoding = encoding ?? Constants.DefaultEncoding,
 				BinaryBufferSize = binaryBufferSize,
 				BinaryMimeTypes = binaryMimeTypes ?? Constants.DefaultBinaryMimeTypes,
+				Boundary = boundary,
+				Encoding = encoding ?? Constants.DefaultEncoding,
 				IgnoreInvalidParts = ignoreInvalidParts
-			};
-
-			_stream = stream;
+			})
+		{
 		}
 
 		/// <summary>
@@ -127,10 +122,8 @@ namespace HttpMultipartParser
 		/// </param>
 		public StreamingMultipartFormDataParser(Stream stream, ParserOptions options)
 		{
-			if (stream == null || stream == Stream.Null) { throw new ArgumentNullException(nameof(stream)); }
-
-			_options = options ?? new ParserOptions();
 			_stream = stream;
+			_options = options;
 		}
 
 		/// <summary>
