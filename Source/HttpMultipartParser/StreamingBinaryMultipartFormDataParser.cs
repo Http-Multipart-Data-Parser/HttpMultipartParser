@@ -160,7 +160,7 @@ namespace HttpMultipartParser
 		{
 			if (stream == null || stream == Stream.Null) throw new ArgumentNullException(nameof(stream));
 			_stream = stream;
-			
+
 			if (options == null)
 			{
 				_options = new ParserOptions();
