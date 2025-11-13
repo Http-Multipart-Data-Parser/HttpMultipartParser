@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="../README.md" />
+  </Folder>
+  <Project Path="HttpMultipartParser/HttpMultipartParser.csproj" />
+  <Project Path="HttpMultipartParser.Benchmark/HttpMultipartParser.Benchmark.csproj" />
+  <Project Path="HttpMultipartParser.UnitTests/HttpMultipartParser.UnitTests.csproj" />
+</Solution>

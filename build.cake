@@ -1,7 +1,7 @@
 // Install tools.
-#tool dotnet:?package=GitVersion.Tool&version=6.4.0
+#tool dotnet:?package=GitVersion.Tool&version=6.5.0
 #tool nuget:?package=GitReleaseManager&version=0.20.0
-#tool nuget:?package=ReportGenerator&version=5.4.17
+#tool nuget:?package=ReportGenerator&version=5.5.0
 #tool nuget:?package=xunit.runner.console&version=2.9.3
 #tool nuget:?package=CodecovUploader&version=0.8.0
 
@@ -44,7 +44,7 @@ var codeCoverageDir = $"{outputDir}CodeCoverage/";
 var benchmarkDir = $"{outputDir}Benchmark/";
 var coverageFile = $"{codeCoverageDir}coverage.xml";
 
-var solutionFile = $"{sourceFolder}{gitHubRepoName}.sln";
+var solutionFile = $"{sourceFolder}{gitHubRepoName}.slnx";
 var sourceProject = $"{sourceFolder}{gitHubRepoName}/{gitHubRepoName}.csproj";
 var integrationTestsProject = $"{sourceFolder}{gitHubRepoName}.IntegrationTests/{gitHubRepoName}.IntegrationTests.csproj";
 var unitTestsProject = $"{sourceFolder}{gitHubRepoName}.UnitTests/{gitHubRepoName}.UnitTests.csproj";
@@ -68,13 +68,14 @@ var removeBenchmarks = isBenchmarkProjectPresent && !isLocalBuild;
 var publishingError = false;
 
 // A single framework is sufficient when calculating code coverage.
-const string DESIRED_FRAMEWORK_FOR_CODE_COVERAGE = "net9.0";
+const string DESIRED_FRAMEWORK_FOR_CODE_COVERAGE = "net10.0";
 
 // The terminal logger introduced but turned off by default in .NET8 and turned on by default in .NET9
 // doesn't work right on Linux and causes a lot of noise in the build log on Ubuntu in AppVeyor.
 // As of March 2025, the terminal logger doesn't seem to work right on Windows in AppVeyor either.
 // Therefore I am enabling it when building on my machine and turning it off in any other environment.
-var terminalLogger = (isLocalBuild && IsRunningOnWindows()) ? "on" : "off";
+var enableTerminalLogger = isLocalBuild && IsRunningOnWindows();
+var terminalLogger = enableTerminalLogger ? "on" : "off";
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -236,13 +237,14 @@ Task("Run-Unit-Tests")
 	.IsDependentOn("Build")
 	.Does(() =>
 {
-	DotNetTest(unitTestsProject, new DotNetTestSettings
+	DotNetTest(null, new DotNetTestSettings
 	{
 		NoBuild = true,
 		NoRestore = true,
 		Configuration = configuration,
 		ArgumentCustomization = args => args
-			.Append($"-tl:{terminalLogger}")
+			.Append($"--project {unitTestsProject}")
+			.Append(enableTerminalLogger ? "" : "--no-progress")
 	});
 });
 
@@ -251,24 +253,22 @@ Task("Run-Code-Coverage")
 	.IsDependentOn("Build")
 	.Does(() =>
 {
-	var testSettings = new DotNetTestSettings
+	DotNetTest(null, new DotNetTestSettings
 	{
 		NoBuild = true,
 		NoRestore = true,
 		Configuration = configuration,
 		Framework = DESIRED_FRAMEWORK_FOR_CODE_COVERAGE,
 
-		// The following assumes that coverlet.msbuild has been added to the unit testing project
 		ArgumentCustomization = args => args
-			.Append($"-tl:{terminalLogger}")
+			.Append($"--project {unitTestsProject}")
+			.Append(enableTerminalLogger ? "" : "--no-progress")
 			.Append("--")
 			.Append("--coverage")
 			.Append("--coverage-output-format xml")
 			.Append($"--coverage-output {MakeAbsolute(new FilePath(coverageFile))}")
 			.Append($"--coverage-settings {MakeAbsolute(new FilePath("CodeCoverage.runsettings"))}")
-    };
-
-    DotNetTest(unitTestsProject, testSettings);
+    });
 });
 
 Task("Upload-Coverage-Result-Codecov")
@@ -501,7 +501,7 @@ RunTarget(target);
 ///////////////////////////////////////////////////////////////////////////////
 // PRIVATE METHODS
 ///////////////////////////////////////////////////////////////////////////////
-private static string TrimStart(this string source, string value, StringComparison comparisonType)
+static string TrimStart(this string source, string value, StringComparison comparisonType)
 {
 	if (source == null)
 	{
@@ -518,20 +518,20 @@ private static string TrimStart(this string source, string value, StringComparis
 	return source.Substring(startIndex);
 }
 
-private static List<string> ExecuteCommand(this ICakeContext context, FilePath exe, string args)
+static List<string> ExecuteCommand(this ICakeContext context, FilePath exe, string args)
 {
     context.StartProcess(exe, new ProcessSettings { Arguments = args, RedirectStandardOutput = true }, out var redirectedOutput);
 
     return redirectedOutput.ToList();
 }
 
-private static List<string> ExecGitCmd(this ICakeContext context, string cmd)
+static List<string> ExecGitCmd(this ICakeContext context, string cmd)
 {
     var gitExe = context.Tools.Resolve(context.IsRunningOnWindows() ? "git.exe" : "git");
     return context.ExecuteCommand(gitExe, cmd);
 }
 
-private static string GetBuildBranch(this ICakeContext context)
+static string GetBuildBranch(this ICakeContext context)
 {
     var buildSystem = context.BuildSystem();
     string repositoryBranch = null;
@@ -550,7 +550,7 @@ private static string GetBuildBranch(this ICakeContext context)
     return repositoryBranch;
 }
 
-private static string GetRepoName(this ICakeContext context)
+static string GetRepoName(this ICakeContext context)
 {
     var buildSystem = context.BuildSystem();
 
@@ -564,7 +564,7 @@ private static string GetRepoName(this ICakeContext context)
 	return $"{parts[parts.Length - 2]}/{parts[parts.Length - 1].Replace(".git", "")}";
 }
 
-private static void UpdateProjectTarget(this ICakeContext context, string path, string desiredTarget)
+static void UpdateProjectTarget(this ICakeContext context, string path, string desiredTarget)
 {
 	var peekSettings = new XmlPeekSettings { SuppressWarning = true };
 	foreach(var projectFile in context.GetFiles(path))
