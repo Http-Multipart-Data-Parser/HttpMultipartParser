@@ -51,8 +51,17 @@ function Invoke-AppVeyorInstall {
                 sudo bash dotnet-install.sh --version $desiredDotNetCoreSDKVersion --install-dir /usr/share/dotnet
             }
             else {
+                # Starting in late 2024, installing .NET SDK without specifying the installation location caused
+                # ONLY the newly installed .NET SDK to be detected instead of being installed side-by-side with
+                # the other version(s) of the SDK already installed. I did not notice this situation until a year
+                # later (November 30 2025) when GitVersion.Tool 2.5.1 would error out with the following exception:
+                # "You must install or update .NET to run this application.". Presumably, this exception was caused
+                # by the fact that GitVersion requires a different version of the .NET SDK to be present.
+                #
+                # This situation is eerily similar with what I experienced on Ubuntu in AppVeyor several years ago.
+
                 Invoke-WebRequest 'https://dot.net/v1/dotnet-install.ps1' -OutFile dotnet-install.ps1
-                .\dotnet-install.ps1 -Version $desiredDotNetCoreSDKVersion
+                .\dotnet-install.ps1 -Version $desiredDotNetCoreSDKVersion -InstallDir "$env:ProgramFiles\dotnet"
             }
         }
         finally {

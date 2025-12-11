@@ -1,7 +1,7 @@
 // Install tools.
-#tool dotnet:?package=GitVersion.Tool&version=6.5.0
+#tool dotnet:?package=GitVersion.Tool&version=6.5.1
 #tool nuget:?package=GitReleaseManager&version=0.20.0
-#tool nuget:?package=ReportGenerator&version=5.5.0
+#tool nuget:?package=ReportGenerator&version=5.5.1
 #tool nuget:?package=xunit.runner.console&version=2.9.3
 #tool nuget:?package=CodecovUploader&version=0.8.0
 
@@ -428,19 +428,7 @@ Task("Generate-Benchmark-Report")
 			.Append($"-tl:{terminalLogger}")
     });
 
-	using (DiagnosticVerbosity())
-    {
-        var processResult = StartProcess(
-            publishedAppLocation,
-            new ProcessSettings()
-            {
-                Arguments = $"-f * --artifacts={artifactsLocation}"
-            });
-        if (processResult != 0)
-        {
-            throw new Exception($"dotnet-benchmark.exe did not complete successfully. Result code: {processResult}");
-        }
-    }
+	Context.ExecuteCommand(publishedAppLocation, $"-f * --artifacts={artifactsLocation}");
 });
 
 
@@ -452,7 +440,7 @@ Task("Coverage")
 	.IsDependentOn("Generate-Code-Coverage-Report")
 	.Does(() =>
 {
-	StartProcess("cmd", $"/c start {codeCoverageDir}index.htm");
+	Context.ExecuteCommand("cmd", $"/c start {codeCoverageDir}index.htm");
 });
 
 Task("Benchmark")
@@ -463,7 +451,7 @@ Task("Benchmark")
     var htmlReports = GetFiles($"{benchmarkDir}results/*-report.html", new GlobberSettings { IsCaseSensitive = false });
 	foreach (var htmlReport in htmlReports)
 	{
-		StartProcess("cmd", $"/c start {htmlReport}");
+		Context.ExecuteCommand("cmd", $"/c start {htmlReport}");
 	}
 });
 
@@ -497,7 +485,6 @@ Task("Default")
 RunTarget(target);
 
 
-
 ///////////////////////////////////////////////////////////////////////////////
 // PRIVATE METHODS
 ///////////////////////////////////////////////////////////////////////////////
@@ -518,17 +505,55 @@ static string TrimStart(this string source, string value, StringComparison compa
 	return source.Substring(startIndex);
 }
 
-static List<string> ExecuteCommand(this ICakeContext context, FilePath exe, string args)
+static IDisposable GetDisposableVerbosity(this ICakeContext context, Verbosity verbosity)
 {
-    context.StartProcess(exe, new ProcessSettings { Arguments = args, RedirectStandardOutput = true }, out var redirectedOutput);
+	return verbosity switch
+	{
+		Verbosity.Diagnostic => context.DiagnosticVerbosity(),
+		Verbosity.Minimal => context.MinimalVerbosity(),
+		Verbosity.Normal => context.NormalVerbosity(),
+		Verbosity.Quiet => context.QuietVerbosity(),
+		Verbosity.Verbose => context.VerboseVerbosity(),
+		_ => throw new ArgumentOutOfRangeException(nameof(verbosity), $"Unknown verbosity: {verbosity}"),
+	}; 
+}
 
-    return redirectedOutput.ToList();
+static List<string> ExecuteCommand(this ICakeContext context, FilePath exe, string args, bool captureStandardOutput = false, Verbosity verbosity = Verbosity.Diagnostic)
+{
+	return context.ExecuteCommand(exe, new ProcessArgumentBuilder().Append(args), captureStandardOutput, verbosity);
+}
+
+static List<string> ExecuteCommand(this ICakeContext context, FilePath exe, ProcessArgumentBuilder argsBuilder, bool captureStandardOutput = false, Verbosity verbosity = Verbosity.Diagnostic)
+{
+	using (context.GetDisposableVerbosity(verbosity))
+	{
+		var processResult = context.StartProcess(
+			exe,
+			new ProcessSettings()
+			{
+				Arguments = argsBuilder,
+				RedirectStandardOutput = captureStandardOutput,
+				RedirectStandardError= true
+			},
+			out var redirectedOutput,
+			out var redirectedError
+		);
+		
+		if (processResult != 0 || redirectedError.Count() > 0)
+		{
+			var errorMsg = string.Join(Environment.NewLine, redirectedError.Where(s => !string.IsNullOrWhiteSpace(s)));
+			var innerException = !string.IsNullOrEmpty(errorMsg) ? new Exception(errorMsg) : null;
+			throw new Exception($"{exe} did not complete successfully. Result code: {processResult}", innerException);
+		}
+		
+		return (redirectedOutput ?? Array.Empty<string>()).ToList();
+	}
 }
 
 static List<string> ExecGitCmd(this ICakeContext context, string cmd)
 {
     var gitExe = context.Tools.Resolve(context.IsRunningOnWindows() ? "git.exe" : "git");
-    return context.ExecuteCommand(gitExe, cmd);
+    return context.ExecuteCommand(gitExe, cmd, true);
 }
 
 static string GetBuildBranch(this ICakeContext context)
