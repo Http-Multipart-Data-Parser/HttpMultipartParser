@@ -1,13 +1,13 @@
 // Install tools.
-#tool dotnet:?package=GitVersion.Tool&version=6.5.1
+#tool dotnet:?package=GitVersion.Tool&version=6.6.0
 #tool nuget:?package=GitReleaseManager&version=0.20.0
-#tool nuget:?package=ReportGenerator&version=5.5.1
+#tool nuget:?package=ReportGenerator&version=5.5.2
 #tool nuget:?package=xunit.runner.console&version=2.9.3
 #tool nuget:?package=CodecovUploader&version=0.8.0
 
 // Install addins.
 #addin nuget:?package=Cake.Git&version=5.0.1
-#addin nuget:?package=Cake.Codecov&version=3.0.0
+#addin nuget:?package=Cake.Codecov&version=6.0.0
 
 
 ///////////////////////////////////////////////////////////////////////////////

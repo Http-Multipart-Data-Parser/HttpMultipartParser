@@ -5,6 +5,8 @@ $ErrorActionPreference = 'Stop'
 # Implements the AppVeyor 'install' step and installs the desired .NET SDK if not already installed.
 function Invoke-AppVeyorInstall {
 
+    $StartTime = Get-Date
+
     Write-Verbose -Verbose "Determining the desired version of .NET SDK"
     $globalDotJson = Get-Content (Join-Path $PSScriptRoot 'global.json') -Raw | ConvertFrom-Json
     $desiredDotNetCoreSDKVersion = $globalDotJson.sdk.version
@@ -73,4 +75,8 @@ function Invoke-AppVeyorInstall {
     else {
         Write-Verbose -Verbose "We have determined that the desired version of the .NET SDK is already installed on this machine"
     }
+
+    # Display elapsed time in a readable format
+    $Elapsed = (Get-Date) - $StartTime
+    Write-Verbose -Verbose "Checking/installing the desired .NET SDK took: $Elapsed"
 }
