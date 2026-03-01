@@ -10,21 +10,21 @@
             <!-- Match fully qualified names of functions: -->
             <Functions>
               <Exclude>
-                <Function>HttpMultipartParser\.Properties\..*</Function>
-                <Function>HttpMultipartParser\.Models\..*</Function>
-                <Function>HttpMultipartParser\.Utilities\.Log\..*</Function>
-                <Function>System\.Text\.Json\.SourceGeneration\..*</Function>
-                <Function>System\.Runtime\.CompilerServices\..*</Function>
+                <Function>^HttpMultipartParser\.Properties\..*</Function>
+                <Function>^HttpMultipartParser\.Models\..*</Function>
+                <Function>^HttpMultipartParser\.Utilities\.Log\..*</Function>
+                <Function>^System\.Text\.Json\.SourceGeneration\..*</Function>
+                <Function>^System\.Runtime\.CompilerServices\..*</Function>
               </Exclude>
             </Functions>
 
             <!-- Match attributes on any code element: -->
             <Attributes>
               <Exclude>
-                <Attribute>HttpMultipartParser\.Utilities\.ExcludeFromCodeCoverageAttribute</Attribute>
-                <Attribute>System\.Obsolete</Attribute>
-                <Attribute>System\.CodeDom\.Compiler\.GeneratedCodeAttribute</Attribute>
-                <Attribute>System\.Runtime\.CompilerServices\.CompilerGeneratedAttribute</Attribute>
+                <Attribute>^System\.Diagnostics\.DebuggerHiddenAttribute$</Attribute>
+                <Attribute>^System\.Diagnostics\.DebuggerNonUserCodeAttribute$</Attribute>
+                <Attribute>^System\.CodeDom\.Compiler\.GeneratedCodeAttribute$</Attribute>
+                <Attribute>^System\.Diagnostics\.CodeAnalysis\.ExcludeFromCodeCoverageAttribute$</Attribute>
               </Exclude>
             </Attributes>
 
