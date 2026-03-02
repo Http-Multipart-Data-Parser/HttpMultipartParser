@@ -27,7 +27,7 @@ PM> Install-Package HttpMultipartParser
 
 ## .NET framework suport
 
-- The parser currently supports .NET framework 4.8 and any framework supporting `.NET Standard 2.1` (which includes .NET 5.0 and all subsequent versions as well as some legacy versions such as .NET Core 3.x and ASP.NET Core 3.x).
+- The parser currently targets `.NET Standard 2.0` and .NET 8.0.
 - Version 5.1.0 was the last version that supported .NET 4.6.1, NET 4.7.2 and .NET standard 2.0.
 - Version 2.2.4 was the last version that supported older .NET platforms such as .NET 4.5 and .NET standard 1.3.
 
