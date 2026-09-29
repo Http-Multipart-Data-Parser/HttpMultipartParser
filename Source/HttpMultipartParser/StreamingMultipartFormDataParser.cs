@@ -142,6 +142,11 @@ namespace HttpMultipartParser
 				FileHandler?.Invoke(name, fileName, type, disposition, buffer, bytes, partNumber, additionalProperties);
 			};
 
+			streamingParser.StreamClosedHandler += () =>
+			{
+				StreamClosedHandler?.Invoke();
+			};
+
 			streamingParser.Run();
 		}
 
@@ -165,6 +170,11 @@ namespace HttpMultipartParser
 			streamingParser.FileHandler += (name, fileName, type, disposition, buffer, bytes, partNumber, additionalProperties) =>
 			{
 				FileHandler?.Invoke(name, fileName, type, disposition, buffer, bytes, partNumber, additionalProperties);
+			};
+
+			streamingParser.StreamClosedHandler += () =>
+			{
+				StreamClosedHandler?.Invoke();
 			};
 
 			await streamingParser.RunAsync().ConfigureAwait(false);
