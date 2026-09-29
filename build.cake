@@ -1,7 +1,7 @@
 // Install tools.
-#tool dotnet:?package=GitVersion.Tool&version=6.6.0
+#tool dotnet:?package=GitVersion.Tool&version=6.8.2
 #tool nuget:?package=GitReleaseManager&version=0.20.0
-#tool nuget:?package=ReportGenerator&version=5.5.2
+#tool nuget:?package=ReportGenerator&version=5.5.11
 #tool nuget:?package=xunit.runner.console&version=2.9.3
 #tool nuget:?package=CodecovUploader&version=0.8.0
 
@@ -62,8 +62,11 @@ var isTagged = BuildSystem.AppVeyor.Environment.Repository.Tag.IsTag && !string.
 var isIntegrationTestsProjectPresent = FileExists(integrationTestsProject);
 var isUnitTestsProjectPresent = FileExists(unitTestsProject);
 var isBenchmarkProjectPresent = FileExists(benchmarkProject);
-var removeIntegrationTests = isIntegrationTestsProjectPresent && !isLocalBuild;
-var removeBenchmarks = isBenchmarkProjectPresent && !isLocalBuild;
+var isBenchmarking = string.Equals(target, "Benchmark", StringComparison.OrdinalIgnoreCase);
+
+var removeUnitTests = isUnitTestsProjectPresent && isBenchmarking; // Unit tests are not needed when benchmarking
+var removeIntegrationTests = (isIntegrationTestsProjectPresent && !isLocalBuild) || isBenchmarking; // Integration tests are intended to be used for debugging purposes and not intended to be executed in CI environment. Also, they are not needed when benchmarking.
+var removeBenchmarks = isBenchmarkProjectPresent && !isLocalBuild; // Benchmarks are not intended to be executed in CI environment.
 
 var publishingError = false;
 
@@ -132,7 +135,13 @@ Setup(context =>
 		);
 	}
 
-	// Integration tests are intended to be used for debugging purposes and not intended to be executed in CI environment.
+	if (removeUnitTests)
+	{
+		Information("");
+		Information("Removing unit tests");
+		DotNetTool(solutionFile, "sln", $"remove {unitTestsProject.TrimStart(sourceFolder, StringComparison.OrdinalIgnoreCase)}");
+	}
+
 	if (removeIntegrationTests)
 	{
 		Information("");
@@ -140,7 +149,6 @@ Setup(context =>
 		DotNetTool(solutionFile, "sln", $"remove {integrationTestsProject.TrimStart(sourceFolder, StringComparison.OrdinalIgnoreCase)}");
 	}
 
-	// Similarly, benchmarks are not intended to be executed in CI environment.
 	if (removeBenchmarks)
 	{
 		Information("");
@@ -151,7 +159,7 @@ Setup(context =>
 
 Teardown(context =>
 {
-	if (removeIntegrationTests || removeBenchmarks)
+	if (removeUnitTests || removeIntegrationTests || removeBenchmarks)
 	{
 		Information("Restoring the solution file which was modified during build script setup");
 		GitCheckout(".", new FilePath[] { solutionFile });

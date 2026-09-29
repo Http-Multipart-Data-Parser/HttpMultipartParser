@@ -44,6 +44,40 @@ namespace HttpMultipartParser.UnitTests
 		}
 
 		[Fact]
+		public void StreamClosedHandler_IsInvoked_ForRun()
+		{
+			using (Stream stream = TestUtil.StringToStream(_testData))
+			{
+				var parser = new StreamingMultipartFormDataParser(stream);
+
+				bool closed = false;
+				parser.FileHandler += (name, fileName, type, disposition, buffer, bytes, partNumber, additionalProperties) => { };
+				parser.StreamClosedHandler += () => closed = true;
+
+				parser.Run();
+
+				Assert.True(closed);
+			}
+		}
+
+		[Fact]
+		public async Task StreamClosedHandler_IsInvoked_ForRunAsync()
+		{
+			using (Stream stream = TestUtil.StringToStream(_testData))
+			{
+				var parser = new StreamingMultipartFormDataParser(stream);
+
+				bool closed = false;
+				parser.FileHandler += (name, fileName, type, disposition, buffer, bytes, partNumber, additionalProperties) => { };
+				parser.StreamClosedHandler += () => closed = true;
+
+				await parser.RunAsync(TestContext.Current.CancellationToken);
+
+				Assert.True(closed);
+			}
+		}
+
+		[Fact]
 		public async Task CanHandleNullDelegatesAsync()
 		{
 			var options = new ParserOptions
