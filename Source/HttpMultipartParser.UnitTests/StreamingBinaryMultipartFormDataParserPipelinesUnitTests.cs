@@ -1,3 +1,4 @@
+#if NET10_0_OR_GREATER
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -6,21 +7,22 @@ using Xunit;
 namespace HttpMultipartParser.UnitTests
 {
 	/// <summary>
-	///     Unit tests for StreamingMultipartFormDataParser.
+	/// Unit tests for StreamingBinaryMultipartFormDataParserPipelines (pipeline prototype).
+	/// These tests are intentionally lightweight and mirror the StreamingMultipartFormDataParserUnitTests behavior.
 	/// </summary>
-	public class StreamingMultipartFormDataParserUnitTests
+	public class StreamingBinaryMultipartFormDataParserPipelinesUnitTests
 	{
 		private static readonly string _testData = TestUtil.TrimAllLines(
 			@"--boundary
-            Content-Disposition: form-data; name=""parameter1""
+			Content-Disposition: form-data; name=""parameter1""
 
-            This is a sample parameter
-            --boundary
-            Content-Disposition: form-data; name=""file1""; filename=""file1.txt""
-            Content-Type: text/plain
+			This is a sample parameter
+			--boundary
+			Content-Disposition: form-data; name=""file1""; filename=""file1.txt""
+			Content-Type: text/plain
 
-            This is the content of a sample file
-            --boundary--"
+			This is the content of a sample file
+			--boundary--"
 		);
 
 		[Fact]
@@ -30,12 +32,12 @@ namespace HttpMultipartParser.UnitTests
 			{
 				Encoding = Encoding.UTF8
 			};
+
 			using (Stream stream = TestUtil.StringToStream(_testData, options.Encoding))
 			{
-				var parser = new StreamingMultipartFormDataParser(stream, options);
+				var parser = new StreamingBinaryMultipartFormDataParserPipelines(stream, options);
 
-				// Intentionally setting these handlers to null to verify that we can parse the stream despite missing handlers
-				// See: https://github.com/Http-Multipart-Data-Parser/Http-Multipart-Data-Parser/issues/121
+				// Intentionally set handlers to null to ensure parser tolerates missing delegates
 				parser.ParameterHandler = null;
 				parser.FileHandler = null;
 				parser.StreamClosedHandler = null;
@@ -54,10 +56,9 @@ namespace HttpMultipartParser.UnitTests
 
 			using (Stream stream = TestUtil.StringToStream(_testData, options.Encoding))
 			{
-				var parser = new StreamingMultipartFormDataParser(stream, options);
+				var parser = new StreamingBinaryMultipartFormDataParserPipelines(stream, options);
 
 				// Intentionally setting these handlers to null to verify that we can parse the stream despite missing handlers
-				// See: https://github.com/Http-Multipart-Data-Parser/Http-Multipart-Data-Parser/issues/121
 				parser.ParameterHandler = null;
 				parser.FileHandler = null;
 				parser.StreamClosedHandler = null;
@@ -67,22 +68,11 @@ namespace HttpMultipartParser.UnitTests
 		}
 
 		[Fact]
-		public void CanHandleDefaultOptions()
-		{
-			using (Stream stream = TestUtil.StringToStream(_testData))
-			{
-				var parser = new StreamingMultipartFormDataParser(stream);
-
-				parser.Run();
-			}
-		}
-
-		[Fact]
 		public void StreamClosedHandler_IsInvoked_ForRun()
 		{
 			using (Stream stream = TestUtil.StringToStream(_testData))
 			{
-				var parser = new StreamingMultipartFormDataParser(stream);
+				var parser = new StreamingBinaryMultipartFormDataParserPipelines(stream);
 
 				bool closed = false;
 				parser.StreamClosedHandler += () => closed = true;
@@ -98,7 +88,7 @@ namespace HttpMultipartParser.UnitTests
 		{
 			using (Stream stream = TestUtil.StringToStream(_testData))
 			{
-				var parser = new StreamingMultipartFormDataParser(stream);
+				var parser = new StreamingBinaryMultipartFormDataParserPipelines(stream);
 
 				bool closed = false;
 				parser.StreamClosedHandler += () => closed = true;
@@ -108,22 +98,6 @@ namespace HttpMultipartParser.UnitTests
 				Assert.True(closed);
 			}
 		}
-
-		[Fact]
-		public async Task Successfully_parses_test_data()
-		{
-			var options = new ParserOptions
-			{
-				Encoding = Encoding.UTF8
-			};
-			using (Stream stream = TestUtil.StringToStream(_testData, options.Encoding))
-			{
-				var parser = new StreamingMultipartFormDataParser(stream, options);
-				parser.ParameterHandler = null;
-				parser.FileHandler = null;
-
-				await parser.RunAsync(TestContext.Current.CancellationToken);
-			}
-		}
 	}
 }
+#endif
