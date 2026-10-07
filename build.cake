@@ -65,7 +65,7 @@ var isBenchmarkProjectPresent = FileExists(benchmarkProject);
 var isBenchmarking = string.Equals(target, "Benchmark", StringComparison.OrdinalIgnoreCase);
 
 var removeUnitTests = isUnitTestsProjectPresent && isBenchmarking; // Unit tests are not needed when benchmarking
-var removeIntegrationTests = (isIntegrationTestsProjectPresent && !isLocalBuild) || isBenchmarking; // Integration tests are intended to be used for debugging purposes and not intended to be executed in CI environment. Also, they are not needed when benchmarking.
+var removeIntegrationTests = isIntegrationTestsProjectPresent && (!isLocalBuild || isBenchmarking); // Integration tests are intended to be used for debugging purposes and not intended to be executed in CI environment. Also, they are not needed when benchmarking.
 var removeBenchmarks = isBenchmarkProjectPresent && !isLocalBuild; // Benchmarks are not intended to be executed in CI environment.
 
 var publishingError = false;
