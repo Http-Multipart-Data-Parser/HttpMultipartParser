@@ -10,6 +10,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 	// https://github.com/Http-Multipart-Data-Parser/Http-Multipart-Data-Parser/issues/40
 	public class FileLineSpansAccrossTwoChunks
 	{
+		private readonly ITestOutputHelper _outputHelper;
 		private static readonly string part1 = "--boundary\r\nContent-Disposition: form-data; name=\"param1\"\r\n\r\nFirst value\r\n";
 		private static readonly string part2 = "--boundary\r\nContent-Disposition: form-data; name=\"param2\"\r\n\r\nSecond value\r\n--boundary--";
 
@@ -31,8 +32,9 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 		///     Initializes the test data before each run, this primarily
 		///     consists of resetting data stream positions.
 		/// </summary>
-		public FileLineSpansAccrossTwoChunks()
+		public FileLineSpansAccrossTwoChunks(ITestOutputHelper outputHelper)
 		{
+			_outputHelper = outputHelper;
 			foreach (var filePart in _testCase.ExpectedFileData)
 			{
 				filePart.Data.Position = 0;
@@ -52,7 +54,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 			using (Stream stream = TestUtil.StringToStream(_testCase.Request, options.Encoding))
 			{
 				var parser = MultipartFormDataParser.Parse(stream, options);
-				Assert.True(_testCase.Validate(parser));
+				Assert.True(_testCase.Validate(parser, _outputHelper));
 			}
 		}
 	}

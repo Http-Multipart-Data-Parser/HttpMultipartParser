@@ -10,6 +10,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 {
 	public class TinyData
 	{
+		private readonly ITestOutputHelper _outputHelper;
 		private static readonly string _testData = TestUtil.TrimAllLines(
 			@"--boundary
             Content-Disposition: form-data; name=""text""
@@ -38,8 +39,9 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 			}
 		);
 
-		public TinyData()
+		public TinyData(ITestOutputHelper outputHelper)
 		{
+			_outputHelper = outputHelper;
 			foreach (var filePart in _testCase.ExpectedFileData)
 			{
 				filePart.Data.Position = 0;
@@ -60,7 +62,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 			using (Stream stream = TestUtil.StringToStream(_testCase.Request, options.Encoding))
 			{
 				var parser = MultipartFormDataParser.Parse(stream, options);
-				Assert.True(_testCase.Validate(parser));
+				Assert.True(_testCase.Validate(parser, _outputHelper));
 			}
 		}
 
@@ -78,7 +80,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 			using (Stream stream = TestUtil.StringToStream(_testCase.Request, options.Encoding))
 			{
 				var parser = await MultipartFormDataParser.ParseAsync(stream, options, TestContext.Current.CancellationToken);
-				Assert.True(_testCase.Validate(parser));
+				Assert.True(_testCase.Validate(parser, _outputHelper));
 			}
 		}
 
@@ -99,7 +101,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 			using (Stream stream = TestUtil.StringToStream(_testCase.Request, options.Encoding))
 			{
 				var parser = MultipartFormDataParser.Parse(stream, options);
-				Assert.True(_testCase.Validate(parser));
+				Assert.True(_testCase.Validate(parser, _outputHelper));
 			}
 		}
 
@@ -120,7 +122,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 			using (Stream stream = TestUtil.StringToStream(_testCase.Request, options.Encoding))
 			{
 				var parser = await MultipartFormDataParser.ParseAsync(stream, options, TestContext.Current.CancellationToken);
-				Assert.True(_testCase.Validate(parser));
+				Assert.True(_testCase.Validate(parser, _outputHelper));
 			}
 		}
 
@@ -142,7 +144,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 			using (Stream stream = TestUtil.StringToStream(request, options.Encoding))
 			{
 				var parser = MultipartFormDataParser.Parse(stream, options);
-				Assert.True(_testCase.Validate(parser));
+				Assert.True(_testCase.Validate(parser, _outputHelper));
 			}
 		}
 
@@ -164,7 +166,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 			using (Stream stream = TestUtil.StringToStream(request, options.Encoding))
 			{
 				var parser = await MultipartFormDataParser.ParseAsync(stream, options, TestContext.Current.CancellationToken);
-				Assert.True(_testCase.Validate(parser));
+				Assert.True(_testCase.Validate(parser, _outputHelper));
 			}
 		}
 
@@ -184,7 +186,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 			using (Stream stream = TestUtil.StringToStream(request, options.Encoding))
 			{
 				var parser = MultipartFormDataParser.Parse(stream, options);
-				Assert.True(_testCase.Validate(parser));
+				Assert.True(_testCase.Validate(parser, _outputHelper));
 			}
 		}
 
@@ -204,7 +206,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 			using (Stream stream = TestUtil.StringToStream(request, options.Encoding))
 			{
 				var parser = await MultipartFormDataParser.ParseAsync(stream, options, TestContext.Current.CancellationToken);
-				Assert.True(_testCase.Validate(parser));
+				Assert.True(_testCase.Validate(parser, _outputHelper));
 			}
 		}
 
@@ -223,7 +225,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 			using (Stream stream = TestUtil.StringToStream(_testCase.Request, options.Encoding))
 			{
 				var parser = MultipartFormDataParser.Parse(stream, options);
-				Assert.True(_testCase.Validate(parser));
+				Assert.True(_testCase.Validate(parser, _outputHelper));
 			}
 		}
 
@@ -242,7 +244,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 			using (Stream stream = TestUtil.StringToStream(_testCase.Request, options.Encoding))
 			{
 				var parser = await MultipartFormDataParser.ParseAsync(stream, options, TestContext.Current.CancellationToken);
-				Assert.True(_testCase.Validate(parser));
+				Assert.True(_testCase.Validate(parser, _outputHelper));
 			}
 		}
 
@@ -258,7 +260,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 			using (Stream stream = TestUtil.StringToStream(_testCase.Request, options.Encoding))
 			{
 				var parser = MultipartFormDataParser.Parse(stream, options);
-				Assert.True(_testCase.Validate(parser));
+				Assert.True(_testCase.Validate(parser, _outputHelper));
 
 				stream.Position = 0;
 				Assert.True(true, "A closed stream would throw ObjectDisposedException");
@@ -277,7 +279,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 			using (Stream stream = TestUtil.StringToStream(_testCase.Request, options.Encoding))
 			{
 				var parser = await MultipartFormDataParser.ParseAsync(stream, options, TestContext.Current.CancellationToken);
-				Assert.True(_testCase.Validate(parser));
+				Assert.True(_testCase.Validate(parser, _outputHelper));
 
 				stream.Position = 0;
 				Assert.True(true, "A closed stream would throw ObjectDisposedException");
@@ -387,8 +389,11 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 		[Fact]
 		public void CanDetectBoundriesWithNewLineInNextBuffer()
 		{
-			for (int i = 16; i < _testCase.Request.Length; i++)
+			var startIndex = 16;
+			for (int i = startIndex; i < _testCase.Request.Length; i++)
 			{
+				_outputHelper.WriteLine($"Test {i - startIndex + 1}/{_testCase.Request.Length - startIndex}; buffer length: {i}");
+
 				var options = new ParserOptions
 				{
 					Boundary = "boundary",
@@ -399,16 +404,21 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 				using (Stream stream = TestUtil.StringToStream(_testCase.Request, options.Encoding))
 				{
 					var parser = MultipartFormDataParser.Parse(stream, options);
-					Assert.True(_testCase.Validate(parser), $"Failure in buffer length {i}");
+					Assert.True(_testCase.Validate(parser, _outputHelper), $"Failure in buffer length {i}");
 				}
+
+				_outputHelper.WriteLine(""); // Blank line for better readability in the output
 			}
 		}
 
 		[Fact]
 		public async Task CanDetectBoundriesWithNewLineInNextBufferAsync()
 		{
-			for (int i = 16; i < _testCase.Request.Length; i++)
+			var startIndex = 16;
+			for (int i = startIndex; i < _testCase.Request.Length; i++)
 			{
+				_outputHelper.WriteLine($"Test {i - startIndex + 1}/{_testCase.Request.Length - startIndex}; buffer length: {i}");
+
 				var options = new ParserOptions
 				{
 					Boundary = "boundary",
@@ -419,8 +429,10 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 				using (Stream stream = TestUtil.StringToStream(_testCase.Request, options.Encoding))
 				{
 					var parser = await MultipartFormDataParser.ParseAsync(stream, options, TestContext.Current.CancellationToken);
-					Assert.True(_testCase.Validate(parser), $"Failure in buffer length {i}");
+					Assert.True(_testCase.Validate(parser, _outputHelper), $"Failure in buffer length {i}");
 				}
+
+				_outputHelper.WriteLine(""); // Blank line for better readability in the output
 			}
 		}
 	}

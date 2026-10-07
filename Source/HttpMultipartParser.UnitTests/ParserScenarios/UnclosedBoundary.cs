@@ -8,6 +8,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 {
 	public class UnclosedBoundary
 	{
+		private readonly ITestOutputHelper _outputHelper;
 		private static readonly string _testData = TestUtil.TrimAllLines(
 			@"------51523
             Content-Disposition: form-data; name=""value""
@@ -24,8 +25,9 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 			new List<FilePart>()
 		);
 
-		public UnclosedBoundary()
+		public UnclosedBoundary(ITestOutputHelper outputHelper)
 		{
+			_outputHelper = outputHelper;
 			foreach (var filePart in _testCase.ExpectedFileData)
 			{
 				filePart.Data.Position = 0;

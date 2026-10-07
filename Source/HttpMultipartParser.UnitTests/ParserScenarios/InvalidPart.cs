@@ -8,6 +8,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 {
 	public class InvalidPart
 	{
+		private readonly ITestOutputHelper _outputHelper;
 		// For details see: https://github.com/Http-Multipart-Data-Parser/Http-Multipart-Data-Parser/issues/110
 		// This data is considered invalid because it contains nothing but empty lines
 		private static readonly string _testData = @"--KoZIhvcNAQcB
@@ -20,8 +21,9 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 			Enumerable.Empty<FilePart>().ToList()
 		);
 
-		public InvalidPart()
+		public InvalidPart(ITestOutputHelper outputHelper)
 		{
+			_outputHelper = outputHelper;
 			foreach (var filePart in _testCase.ExpectedFileData)
 			{
 				filePart.Data.Position = 0;

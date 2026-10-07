@@ -9,6 +9,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 	// https://github.com/Http-Multipart-Data-Parser/Http-Multipart-Data-Parser/issues/64
 	public class FileChunkStartsWithBOM
 	{
+		private readonly ITestOutputHelper _outputHelper;
 		private static readonly int _binaryBufferSize = 100;
 		private static readonly byte[] _utf8BOMBinary = new byte[] { 0xef, 0xbb, 0xbf };
 		private static readonly string _utf8BOMString = Encoding.UTF8.GetString(_utf8BOMBinary);
@@ -39,8 +40,9 @@ Content-Type: application/octet-stream
 		///     Initializes the test data before each run, this primarily
 		///     consists of resetting data stream positions.
 		/// </summary>
-		public FileChunkStartsWithBOM()
+		public FileChunkStartsWithBOM(ITestOutputHelper outputHelper)
 		{
+			_outputHelper = outputHelper;
 			foreach (var filePart in _testCase.ExpectedFileData)
 			{
 				filePart.Data.Position = 0;

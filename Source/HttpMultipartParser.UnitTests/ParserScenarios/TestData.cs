@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Xunit;
 
 namespace HttpMultipartParser.UnitTests.ParserScenarios
 {
@@ -57,19 +58,63 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 		/// <returns>
 		///     The <see cref="bool" /> representing if this test passed.
 		/// </returns>
-		public bool Validate(MultipartFormDataParser parser)
+		public bool Validate(IMultipartFormDataParser parser, ITestOutputHelper outputHelper)
 		{
-			var result = ValidateParameters(parser);
-			result &= ValidateFiles(parser);
+			// Build a diagnostic message 
+			outputHelper?.WriteLine("TestData.Validate details:");
 
-			return result;
+			// Validate parameters
+			var parametersValid = ValidateParameters(parser);
+			outputHelper?.WriteLine("PARAMETERS");
+			if (parametersValid)
+			{
+				outputHelper?.WriteLine("  Actual and expected match");
+			}
+			else
+			{
+				outputHelper?.WriteLine($"  Expected: {ExpectedParams.Count}");
+				foreach (var p in ExpectedParams)
+				{
+					outputHelper?.WriteLine($"    Name='{p.Name}' Value='{p.Data}'");
+				}
+				outputHelper?.WriteLine($"  Actual: {parser.Parameters.Count}");
+				foreach (var p in parser.Parameters)
+				{
+					outputHelper?.WriteLine($"    Name='{p.Name}' Value='{p.Data}'");
+				}
+			}
+
+			// Validate files
+			var filesValid = ValidateFiles(parser);
+			outputHelper?.WriteLine("FILES");
+			if (filesValid)
+			{
+				outputHelper?.WriteLine("  Actual and expected match");
+			}
+			else
+			{
+				outputHelper?.WriteLine($"  Expected: {ExpectedFileData.Count}");
+				for (int i = 0; i < ExpectedFileData.Count; i++)
+				{
+					var f = ExpectedFileData[i];
+					outputHelper?.WriteLine($"    [{i}] Name='{f.Name}' FileName='{f.FileName}' ContentType='{f.ContentType}' Size='{(f.Data.CanSeek ? f.Data.Length.ToString() : "unknown")}'");
+				}
+				outputHelper?.WriteLine($"  Actual: {parser.Files.Count}");
+				for (int i = 0; i < parser.Files.Count; i++)
+				{
+					var f = parser.Files[i];
+					outputHelper?.WriteLine($"    [{i}] Name='{f.Name}' FileName='{f.FileName}' ContentType='{f.ContentType}' Size='{(f.Data.CanSeek ? f.Data.Length.ToString() : "unknown")}'");
+				}
+			}
+
+			return parametersValid && filesValid;
 		}
 
 		#endregion
 
 		#region Private methods
 
-		private bool ValidateParameters(MultipartFormDataParser parser)
+		private bool ValidateParameters(IMultipartFormDataParser parser)
 		{
 			var actualParameters = parser.Parameters.GroupBy(p => p.Name);
 			var expectedParameters = ExpectedParams.GroupBy(p => p.Name);
@@ -94,7 +139,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 			});
 		}
 
-		private bool ValidateFiles(MultipartFormDataParser parser)
+		private bool ValidateFiles(IMultipartFormDataParser parser)
 		{
 			// PLEASE NOTE: we can't rely on the name and/or the file name because they are not guaranteed to be unique.
 			// Therefore we assume that the first expected file should match the first actual file,

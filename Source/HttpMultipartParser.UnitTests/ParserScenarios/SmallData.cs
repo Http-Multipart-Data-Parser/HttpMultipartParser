@@ -10,6 +10,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 	/// </summary>
 	public class SmallData
 	{
+		private readonly ITestOutputHelper _outputHelper;
 		private static readonly string _testData = TestUtil.TrimAllLines(
 			@"-----------------------------265001916915724
             Content-Disposition: form-data; name=""textdata""
@@ -45,8 +46,9 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 		///     Initializes the test data before each run, this primarily
 		///     consists of resetting data stream positions.
 		/// </summary>
-		public SmallData()
+		public SmallData(ITestOutputHelper outputHelper)
 		{
+			_outputHelper = outputHelper;
 			foreach (var filePart in _testCase.ExpectedFileData)
 			{
 				filePart.Data.Position = 0;
@@ -67,7 +69,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 				// spec. (A -- is added by the parser, this boundary is what would be sent in the
 				// request header)
 				var parser = MultipartFormDataParser.Parse(stream, options);
-				Assert.True(_testCase.Validate(parser));
+				Assert.True(_testCase.Validate(parser, _outputHelper));
 			}
 		}
 
@@ -85,7 +87,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 				// spec. (A -- is added by the parser, this boundary is what would be sent in the
 				// request header)
 				var parser = await MultipartFormDataParser.ParseAsync(stream, options, TestContext.Current.CancellationToken);
-				Assert.True(_testCase.Validate(parser));
+				Assert.True(_testCase.Validate(parser, _outputHelper));
 			}
 		}
 	}

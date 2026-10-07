@@ -8,6 +8,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 {
 	public class FullPathAsFileName
 	{
+		private readonly ITestOutputHelper _outputHelper;
 		private static readonly string _testData = TestUtil.TrimAllLines(
 			@"-----------------------------7de6cc440a46
             Content-Disposition: form-data; name=""file""; filename=""C:\test\test;abc.txt""
@@ -25,8 +26,9 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 			}
 		);
 
-		public FullPathAsFileName()
+		public FullPathAsFileName(ITestOutputHelper outputHelper)
 		{
+			_outputHelper = outputHelper;
 			foreach (var filePart in _testCase.ExpectedFileData)
 			{
 				filePart.Data.Position = 0;
@@ -44,7 +46,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 			using (Stream stream = TestUtil.StringToStream(_testCase.Request, options.Encoding))
 			{
 				var parser = MultipartFormDataParser.Parse(stream, options);
-				Assert.True(_testCase.Validate(parser));
+				Assert.True(_testCase.Validate(parser, _outputHelper));
 			}
 		}
 
@@ -59,7 +61,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 			using (Stream stream = TestUtil.StringToStream(_testCase.Request, options.Encoding))
 			{
 				var parser = await MultipartFormDataParser.ParseAsync(stream, options, TestContext.Current.CancellationToken);
-				Assert.True(_testCase.Validate(parser));
+				Assert.True(_testCase.Validate(parser, _outputHelper));
 			}
 		}
 	}

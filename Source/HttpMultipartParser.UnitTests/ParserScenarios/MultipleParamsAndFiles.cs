@@ -11,6 +11,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 	/// </summary>
 	public class MultipleParamsAndFiles
 	{
+		private readonly ITestOutputHelper _outputHelper;
 		private static readonly string _testData = TestUtil.TrimAllLines(
 			@"--boundary
             Content-Disposition: form-data; name=""text""
@@ -55,8 +56,9 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 			}
 		);
 
-		public MultipleParamsAndFiles()
+		public MultipleParamsAndFiles(ITestOutputHelper outputHelper)
 		{
+			_outputHelper = outputHelper;
 		}
 
 		/// <summary>
@@ -76,7 +78,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 			using (Stream stream = TestUtil.StringToStream(_testCase.Request, options.Encoding))
 			{
 				var parser = MultipartFormDataParser.Parse(stream, options);
-				Assert.True(_testCase.Validate(parser));
+				Assert.True(_testCase.Validate(parser, _outputHelper));
 			}
 		}
 
@@ -93,7 +95,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 			using (Stream stream = TestUtil.StringToStream(_testCase.Request, options.Encoding))
 			{
 				var parser = await MultipartFormDataParser.ParseAsync(stream, options, TestContext.Current.CancellationToken);
-				Assert.True(_testCase.Validate(parser));
+				Assert.True(_testCase.Validate(parser, _outputHelper));
 			}
 		}
 	}

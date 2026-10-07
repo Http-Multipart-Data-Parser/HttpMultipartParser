@@ -17,14 +17,16 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 	// As of March 2022, this problem was resolved by throwing a more descriptive exception.
 	public class StreamPositionHasBeenMoved
 	{
+		private readonly ITestOutputHelper _outputHelper;
 		private static readonly TestData _testCase = new TestData(
 			"Hello world",
 			Enumerable.Empty<ParameterPart>().ToList(),
 			Enumerable.Empty<FilePart>().ToList()
 		);
 
-		public StreamPositionHasBeenMoved()
+		public StreamPositionHasBeenMoved(ITestOutputHelper outputHelper)
 		{
+			_outputHelper = outputHelper;
 			foreach (var filePart in _testCase.ExpectedFileData)
 			{
 				filePart.Data.Position = 0;

@@ -9,6 +9,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 {
 	public class BoundaryEndsWithDoubleDash
 	{
+		private readonly ITestOutputHelper _outputHelper;
 		// The boundary in this scenario ends with '--'. This is an unusual scenario but perfectly legitimate.
 		// For details, see: https://github.com/Http-Multipart-Data-Parser/Http-Multipart-Data-Parser/issues/123
 		private static readonly string _testData = TestUtil.TrimAllLines(
@@ -34,8 +35,9 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 			}
 		);
 
-		public BoundaryEndsWithDoubleDash()
+		public BoundaryEndsWithDoubleDash(ITestOutputHelper outputHelper)
 		{
+			_outputHelper = outputHelper;
 			foreach (var filePart in _testCase.ExpectedFileData)
 			{
 				filePart.Data.Position = 0;
@@ -56,7 +58,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 			using (Stream stream = TestUtil.StringToStream(_testCase.Request, options.Encoding))
 			{
 				var parser = MultipartFormDataParser.Parse(stream, options);
-				Assert.True(_testCase.Validate(parser));
+				Assert.True(_testCase.Validate(parser, _outputHelper));
 			}
 		}
 
@@ -74,7 +76,7 @@ namespace HttpMultipartParser.UnitTests.ParserScenarios
 			using (Stream stream = TestUtil.StringToStream(_testCase.Request, options.Encoding))
 			{
 				var parser = await MultipartFormDataParser.ParseAsync(stream, options, TestContext.Current.CancellationToken);
-				Assert.True(_testCase.Validate(parser));
+				Assert.True(_testCase.Validate(parser, _outputHelper));
 			}
 		}
 	}
