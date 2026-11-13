@@ -1,7 +1,7 @@
 // Install tools.
 #tool dotnet:?package=GitVersion.Tool&version=6.8.2
 #tool nuget:?package=GitReleaseManager&version=0.20.0
-#tool nuget:?package=ReportGenerator&version=5.5.11
+#tool nuget:?package=ReportGenerator&version=5.6.0
 #tool nuget:?package=xunit.runner.console&version=2.9.3
 #tool nuget:?package=CodecovUploader&version=0.8.0
 
@@ -71,7 +71,10 @@ var removeBenchmarks = isBenchmarkProjectPresent && !isLocalBuild; // Benchmarks
 var publishingError = false;
 
 // A single framework is sufficient when calculating code coverage.
-const string DESIRED_FRAMEWORK_FOR_CODE_COVERAGE = "net10.0";
+// This single framework is also used on Ubuntu because mono is no longer
+// supported by Microsoft nor by xUnit and therefore running unit test
+// targeting net48 would be problematic (albeit not completely impossible).
+const string SINGLE_FRAMEWORK = "net11.0";
 
 // The terminal logger introduced but turned off by default in .NET8 and turned on by default in .NET9
 // doesn't work right on Linux and causes a lot of noise in the build log on Ubuntu in AppVeyor.
@@ -250,6 +253,8 @@ Task("Run-Unit-Tests")
 		NoBuild = true,
 		NoRestore = true,
 		Configuration = configuration,
+		Framework = IsRunningOnWindows() ? null : SINGLE_FRAMEWORK, // mono is no longer supported on Ubuntu since .NET 11 and xUnit 4
+
 		ArgumentCustomization = args => args
 			.Append($"--project {unitTestsProject}")
 			.Append(enableTerminalLogger ? "" : "--no-progress")
@@ -266,7 +271,7 @@ Task("Run-Code-Coverage")
 		NoBuild = true,
 		NoRestore = true,
 		Configuration = configuration,
-		Framework = DESIRED_FRAMEWORK_FOR_CODE_COVERAGE,
+		Framework = SINGLE_FRAMEWORK,
 
 		ArgumentCustomization = args => args
 			.Append($"--project {unitTestsProject}")
