@@ -9,6 +9,7 @@ indent_style = space
 indent_size = 4
 insert_final_newline = false
 trim_trailing_whitespace = true
+dotnet_diagnostic.SA1636.severity = none # The file header at the top of a C# code file does not contain the appropriate copyright text.
 
 # .NET Code files
 [*.{cs,csx,cake,vb,vbx,h,cpp,idl}]

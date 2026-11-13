@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 
+#pragma warning disable SA1649 // File name should match first type name
 namespace HttpMultipartParser
 {
 	/// <summary>
@@ -35,3 +36,4 @@ namespace HttpMultipartParser
 	/// <param name="binaryPart">The parsed parameter part.</param>
 	public delegate void BinaryParameterDelegate(ParameterPartBinary binaryPart);
 }
+#pragma warning restore SA1649 // File name should match first type name

@@ -1,5 +1,5 @@
 // --------------------------------------------------------------------------------------------------------------------
-// <copyright file="MultipartFormDataParser.cs" company="Jake Woods">
+// <copyright file="MultipartFormBinaryDataParser.cs" company="Jake Woods">
 //   Copyright (c) 2013 Jake Woods
 //
 //   Permission is hereby granted, free of charge, to any person obtaining a copy of this software
